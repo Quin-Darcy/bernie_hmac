@@ -121,6 +121,15 @@ pub fn hmac(data: &[u8], key: &[u8]) -> Vec<u8> {
     outer_hash
 }
 
+pub fn verify_hmac(data: &[u8], received_mac_tag: &[u8], key: &[u8]) -> bool {
+    let computed_mac_tag = hmac(data, key);
+
+    // Perform a constant-time comparison to mitigate timing attacks
+    use subtle::ConstantTimeEq;
+    computed_mac_tag.ct_eq(received_mac_tag).unwrap_u8() == 1
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -148,6 +157,19 @@ mod tests {
         let target_hex_string: String = "198a607eb44bfbc69903a0f1cf2bbdc5ba0aa3f3d9ae3c1c7a3b1696a0b68cf7".to_string();
 
         assert_eq!(hex_string, target_hex_string);
+    }
+
+    #[test]
+    fn test_verify_hmac() {
+        let key = vec![0xa; 32];
+        let message: &str = "dddddddddddddddddddddddddddddddddddddddddddddddddd";
+        let message_bytes = message.as_bytes().to_vec();
+        let hmac_value = hmac(&message_bytes, &key);
+        let mut modified_hmac_value = hmac_value.clone();
+        modified_hmac_value[0] = 0xff;
+
+        assert_eq!(verify_hmac(&message_bytes, &hmac_value, &key), true);
+        assert_eq!(verify_hmac(&message_bytes, &modified_hmac_value, &key), false);
     }
 
     fn to_hex_string(bytes: &[u8]) -> String {
