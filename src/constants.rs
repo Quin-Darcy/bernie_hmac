@@ -17,3 +17,5 @@ pub const PRIME_CUBES: [u32; 64] = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5db
                                     0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 
                                     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 
                                     0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+
+pub const BLOCKSIZE: usize = 64;

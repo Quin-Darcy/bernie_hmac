@@ -3,20 +3,22 @@ mod utils;
 mod constants;
 
 use crate::utils::{pad, parse, sigma_256_1, sigma_256_0, Sigma_256_0, Sigma_256_1, ch, maj};
-use crate::constants::{INITIAL_HASH, PRIME_CUBES};
+use crate::constants::{INITIAL_HASH, PRIME_CUBES, BLOCKSIZE};
 
 
-// This function normalized the key length to assure it contains exactly 64 bytes
+// This function normalizes the key length to assure it contains exactly BLOCKSIZE many bytes
 fn normalize(key: &[u8]) -> Vec<u8> {
     let mut normalized_key: Vec<u8> = Vec::with_capacity(64);
-    if key.len() > 64 {
+    if key.len() > BLOCKSIZE {
+        // If the key length is greater than the blocklength, we hash it first
         let hashed_key = hash(key);
         normalized_key.extend(hashed_key);
     } else {
         normalized_key.extend_from_slice(key);
     }
 
-    let pad = vec![0_u8; 64 - normalized_key.len()];
+    // Add padding to the key to assure it has a total of blocksize many bytes
+    let pad = vec![0_u8; BLOCKSIZE - normalized_key.len()];
     normalized_key.extend(pad);
     normalized_key
 }
@@ -56,7 +58,7 @@ pub fn hash(data: &[u8]) -> Vec<u8> {
         // Compute the two temporary words and update the working variables
         let mut t1: u32;
         let mut t2: u32;
-        for t in 0..64 { // <------------ Check this if testing fails - change to 64
+        for t in 0..64 {
             t1 = h.wrapping_add(Sigma_256_1(e))
                     .wrapping_add(ch(e, f, g))
                     .wrapping_add(PRIME_CUBES[t])
@@ -95,8 +97,8 @@ pub fn hmac(data: &[u8], key: &[u8]) -> Vec<u8> {
     let normalized_key = normalize(key);
 
     // Initialize values for inner padding and outer padding
-    let ipad = vec![0x36; 64];
-    let opad = vec![0x5c; 64];
+    let ipad = vec![0x36; BLOCKSIZE];
+    let opad = vec![0x5c; BLOCKSIZE];
 
     // XOR the normalized key with ipad and opad
     let inner_key: Vec<u8> = normalized_key.iter().zip(ipad.iter()).map(|(&k, &i)| k ^ i).collect();
