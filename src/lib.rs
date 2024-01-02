@@ -21,7 +21,7 @@ fn normalize(key: &[u8]) -> Vec<u8> {
     normalized_key
 }
 
-fn hash(data: &[u8]) -> Vec<u8> {
+pub fn hash(data: &[u8]) -> Vec<u8> {
     // Preprocess
     let padded_message = pad(data).unwrap();
     let message_blocks = parse(&padded_message);
